@@ -36,6 +36,8 @@
 ******************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <signal.h>
 
 /* The instruction set */

@@ -36,6 +36,11 @@
 #include "vc.h"
 #include "parser.h"
 
+extern int yylex(void); // added by mcarter
+extern int yywrap(void); // added by mcarter
+//int yywrap() { return 1; }
+//#define yywrap 1
+
 /* Routines defined here. These are in the code section below and build symbol
    table entries for variable names, integer constants and text strings
    respectively. */ 
