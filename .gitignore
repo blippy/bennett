@@ -1,0 +1,15 @@
+*.swp
+autom4te.cache/
+config.log
+config.status
+configure
+.deps/
+Makefile
+Makefile.in
+aclocal.m4
+compile
+depcomp
+install-sh
+missing
+y.tab.c
+y.tab.h

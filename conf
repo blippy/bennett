@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if [ ! -f configure ]; then
+	autoreconf -iv
+fi
+
+./configure $OPTS --prefix=$HOME/.local
