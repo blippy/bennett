@@ -4,6 +4,8 @@ vc
 parser.h
 parser.c
 scanner.c
+vas.h
+vas.c
 ylwrap
 *.o
 *.swp

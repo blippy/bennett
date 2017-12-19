@@ -31,6 +31,8 @@
 ******************************************************************************/
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define  MAXLAB  0x1000			 /* Number of labels */
 
