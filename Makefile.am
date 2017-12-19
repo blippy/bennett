@@ -1,3 +1,7 @@
 bin_PROGRAMS = vc
 
-vc_SOURCES = vc.c parse.y
+YFLAGS = -d
+BUILT_SOURCES = parser.c scanner.c
+CLEANFILES = $(BUILT_SOURCES)
+
+vc_SOURCES = cg.c main.c parser.y scanner.l
