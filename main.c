@@ -39,6 +39,8 @@
    We rename it "parser.h" when building the compiler for clarity. */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include "vc.h"
 #include "parser.h"
