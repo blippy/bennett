@@ -101,7 +101,11 @@ void  cg_arg( SYMB *a ) ;
 void  cg_call( int   f,
                SYMB *res ) ;
 void  cg_return( SYMB *a ) ;
-void  cg_sys( char *fn ) ;
+
+//void  cg_sys( char *fn ) ;
+extern const char* cg_sys_header;
+extern const char* cg_sys_lib;
+
 void  cg_strings( void ) ;
 void  cg_str( SYMB *s ) ;
 void  flush_all( void ) ;
@@ -138,7 +142,8 @@ void  cg( TAC *tl )
 {
         TAC *tls = init_cg( tl ) ;              /* Start of TAC */
 
-        cg_sys( LIB_DIR "header" ) ;             /* Standard header */
+        //cg_sys( LIB_DIR "header" ) ;             /* Standard header */
+	puts(cg_sys_header);
 
         for( ; tls != NULL ; tls = tls->next )  /* Instructions in turn */
         {
@@ -147,7 +152,8 @@ void  cg( TAC *tl )
                 cg_instr( tls ) ;
         }
 
-        cg_sys( LIB_DIR "lib" ) ;                /* Library */
+        //cg_sys( LIB_DIR "lib" ) ;                /* Library */
+	puts(cg_sys_lib);
         cg_strings() ;                           /* String data */
 
 }       /* void  cg( TAC *tl ) */
@@ -486,13 +492,10 @@ void  cg_return( SYMB *a )
 }       /* void  cg_return( SYMB *a ) */
 
 
-void  cg_sys( char *fn )                 /* File name */
-
-/* This routine is used to copy standard header and library files into the
-   generated code. */
-
+/*
+void  cg_sys( char *fn )
 {
-        FILE *fd = fopen( fn, "r" ) ; /* The library file */
+        FILE *fd = fopen( fn, "r" ) ; // The library file
         int  c ;
 
         if( fd == NULL )
@@ -506,8 +509,8 @@ void  cg_sys( char *fn )                 /* File name */
 
         fclose( fd ) ;
 
-}       /* void  cg_sys( char *fn ) */
-
+}
+*/
 
 void  cg_strings( void )
 

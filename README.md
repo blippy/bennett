@@ -6,8 +6,13 @@
 
 Example usage:
 ```
-vc < file.vsl > file.vas
-vas < file.vas > file.vam
+vc file.vsl # creates file file.vas
+vas  file.vas # creates file file.vam
+vam file.vam # execute
+```
+
+If you want a trace:
+```
 vam -t file.vam > file.trace.output
 ```
 

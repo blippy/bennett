@@ -3,7 +3,7 @@ AC_INIT([bennett], [0.0.0])
 AC_CONFIG_SRCDIR([main.c])
 AM_INIT_AUTOMAKE([foreign])
 
-AC_PROG_CC
+AC_PROG_CXX
 AC_PROG_LEX
 AC_PROG_YACC
 
