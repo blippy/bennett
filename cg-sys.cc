@@ -1,6 +1,7 @@
 
 const char* cg_sys_header = R"TEXT(
 
+\ *** BEGIN STANDARD PROLOG HEADER
 \
 \      Standard prolog
 \
@@ -15,10 +16,14 @@ const char* cg_sys_header = R"TEXT(
        LDA  L1,R3                        \ Return address for main routine
 \
 
+\ The above is boilerplate
+\ *** END STANDARD PROLOG HEADER
+
 )TEXT";
 
 const char* cg_sys_lib = R"TEXT(
-
+\ *** BEGIN LIBRARY ROUTINES
+\ What follows is bolierplate
 \      Library routines
 \
 \      Modifications:
@@ -80,5 +85,7 @@ L6:
        LDI  0(R1),R1                     \ Restore stack pointer
        BAL  R2,R3                        \ Return
 \
+
+\ *** END LIBRARY ROUTINES
 
 )TEXT";
