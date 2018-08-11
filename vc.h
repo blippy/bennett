@@ -94,7 +94,6 @@
 #define  LIB_PRINTS     1
 #define  LIB_MAX        2
 
-#define  LIB_DIR  "/jeremy/book/code/"  /* Library directory */
 
 /* Many of the structures we are to use have complex unions and subfields.
    Specifying which field we are want can be verbose and for convenience we

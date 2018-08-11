@@ -2,9 +2,21 @@
 
 [Code](http://www.jeremybennett.com/publications/download.html) for Jeremy Bennet's Introduction to Compiler Techniques.
 
-## Notes
+## Example Usage
 
-Example usage:
+For reference you may like to note that the minimal VSL program is:
+
+```
+echo "
+FUNC main ()
+{
+    CONTINUE
+}
+" > file.vsl
+```
+
+Compile and execute it as follows
+
 ```
 vc file.vsl # creates file file.vas
 vas  file.vas # creates file file.vam
@@ -16,23 +28,7 @@ If you want a trace:
 vam -t file.vam > file.trace.output
 ```
 
-The vc code generator picks up standard prologue and library files. The
-directory where these are found is set by the line
-
-   #define  LIB_DIR  "/home/jpb/book/distrib/"  /* Library directory */
-
-in vc.h. This should be modified to refer to the directory with the vc source.
-Note the / at the end.
-
-Finally some ANSI compilers are likely to need #include <stdlib.h> in
-appropriate places.
-
-For reference you may like to note that the minimal VSL program is:
-
-   FUNC main ()
-   {
-           CONTINUE
-   }
+## Notes
 
 
 The files in this directory are as follows:
