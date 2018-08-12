@@ -1,0 +1,4 @@
+FUNC main()
+{
+	PRINT "Hello world\n"
+}
