@@ -1,0 +1,6 @@
+// The simplest program that could possibly work
+
+FUNC main()
+{
+	CONTINUE
+}
