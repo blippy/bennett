@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <unordered_set>
@@ -13,6 +14,7 @@
 using std::cerr;
 using std::cout;
 using std::map;
+using std::ofstream;
 using std::pair;
 using std::string;
 //using std::unordered_set;
@@ -84,6 +86,18 @@ void halt() { bput(0); }
 void nop() { bput(1); }
 void trap() { bput(2); }
 
+void add(int rx, int ry)
+{
+	bput(3);
+	bput(rx);
+	bput(ry);
+}
+void sub(int rx, int ry)
+{
+	bput(4);
+	bput(rx);
+	bput(ry);
+}
 
 
 void lda(int off, byte rx, byte ry)
@@ -115,12 +129,28 @@ void run()
 
 	int ip = 0, zset = 0;
 	while(byte b = bcode[ip++]) { // halt is automatically taken care of
-		int off, rx, ryn, tmp;
+		int off, rx, ry, ryn, tmp;
 		switch(b) {
 			case 1:	break; // nop
 			case 2: // trap
 				//cout << "trap called";
 				cout << (char) reg[15] ;
+				break;
+			case 3: // add
+				rx = reg[bget(ip)];
+				ryn = bget(ip);
+				ry = reg[ryn];
+				ry = rx + ry;
+				reg[ryn] = ry;
+				zset = ry == 0;
+				break;
+			case 4: // sub
+				rx = reg[bget(ip)];
+				ryn = bget(ip);
+				ry = reg[ryn];
+				ry = rx - ry;
+				reg[ryn] = ry;
+				zset = ry == 0;
 				break;
 			case 9:  //lda
 				off = bgetint(ip);
@@ -144,30 +174,33 @@ void run()
 void prog()
 {
 	nop();
-	//lda(5, 0 , 1);
-	lda(5, 0 , 1);
+	lda(5, 0, 1);
+	lda(1, 2, 2);
+	sub(0, 2);
 	lda('X', 0, 15);
 	label("L1");
 	trap();
-	lda(-1, 1, 1);
-	bnz("L1");
-	
+	add(2, 1);
+	//lda(-1, 1, 1);
+	bnz("L1");	
 	halt();
 }
 
 void dump()
 {
 	//for(int i = 0; i<bcode.size(); ++i)
-	for(auto b: bcode)
-		cout << (int) b << " ";
-	cout << "\nDump finished\n";
+	ofstream ostr;
+	ostr.open("a.bin");
+	for(auto b: bcode) ostr << b;
+	ostr.close();
+	//cout << "\nDump finished\n";
 }
 
 int main() 
 {
 	prog();
 	resolve_labels();
-	//dump();
+	dump();
 	run();
 	return 0;
 }
