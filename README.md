@@ -45,5 +45,8 @@ vas.y            YACC source for the VAS assembler
 vc.h             C Header for the vc compiler
 ```
 
+I have started experiments in writing a VM myself (Mark Carter) at
+[myvm](mymv/README.md)
+
 Happy programming,
 
