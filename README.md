@@ -50,3 +50,11 @@ I have started experiments in writing a VM myself (Mark Carter) at
 
 Happy programming,
 
+## License
+
+The license is a little ambiguous. Here's what on Jeremy's download [page](http://www.jeremybennett.com/publications/download.html):
+
+
+> Feel free to use this code in conjunction with the textbook, or for other uses where you feel it would be helpful. There is no explicit separate license for this software alone, but I should appreciate being cited as the source if you do use it.
+
+> Note.The code is listed in the textbook, which is copyright McGraw-Hill International (UK) Limited. Please act appropriately if you wish to publish extracts from this code.
