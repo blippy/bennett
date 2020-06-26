@@ -7,5 +7,5 @@ AC_PROG_CXX
 AC_PROG_LEX
 AC_PROG_YACC
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile examples/Makefile])
 AC_OUTPUT

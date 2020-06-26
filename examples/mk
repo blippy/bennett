@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+../vc $1
+BD=`basename $1 .vsl`
+VAS=$BD.vas
+#echo "vas name: $VAS"
+../vas $VAS
