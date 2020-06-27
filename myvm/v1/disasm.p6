@@ -1,4 +1,16 @@
-my $contents = slurp "../../examples/fact.vam", :bin;
+##!/usr/bin/env perl6
+
+#say $*ARGFILES;
+
+#sub MAIN(Str $file where *.IO.f ) {
+#	say $file;
+#}
+#
+
+my @args =  @*ARGS;
+
+#my $contents = slurp "../../examples/fact.vam", :bin;
+my $contents = slurp @args[0], :bin;
 #say $contents;
 
 #say $contents.elems;
