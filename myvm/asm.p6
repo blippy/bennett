@@ -151,5 +151,6 @@ Buf.new(@mem[0]);
 my $fout = open "out.vam", :w, :bin; # , :enc("ascii");
 #$fout.write(@mem);
 for @mem { $fout.write(Buf.new($_)); }
+#for @mem { $fout.write-uint8($_); }
 $fout.close;
 #spurt "out.vam", @mem, :w, :bin;
