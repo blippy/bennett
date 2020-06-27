@@ -7,7 +7,7 @@ my $i = 0;
 
 my $rx;
 my $ry;
-my $offset;
+my int32 $offset;
 
 sub rxy() {
 	my byte $b = $contents[$i];
@@ -30,6 +30,7 @@ sub rxyo() { rxy ; offset ; }
 #loop (my $i = 0; $i < $contents.elems ; 0) {
 while ($i < $contents.elems) {
 	my $ins = $contents[$i];
+	printf "%05dd\t", $i;
 	$i++;
 	#print $ins, "\t" ;
 	given $ins {
