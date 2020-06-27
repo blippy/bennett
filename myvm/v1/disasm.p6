@@ -1,17 +1,54 @@
 my $contents = slurp "../../examples/fact.vam", :bin;
-#say $contents.encoding("ASCII").bytes;
-say $contents;
+#say $contents;
 
-loop (my $i = 0; $i < $contents.elems /4; 0) {
+#say $contents.elems;
+
+my $i = 0;
+
+my $rx;
+my $ry;
+my $offset;
+
+sub rxy() {
+	my byte $b = $contents[$i];
+	$rx = $b +> 4; # high nibble
+	$rx = "R$rx";
+	$ry = $b +& 0xf; # low nibble
+	$ry = "R$ry";
+	$i++;
+	#say "rx= $rx, ry= $ry";
+}
+
+sub offset() {
+	#$offset = $contents[$i+0] + ($contents[$i+1] +< 8) + ($contents[$i+2] +< 16) + ($contents[$i+3] +< 24);
+	$offset = ($contents[$i+0] +< 24) + ($contents[$i+1] +< 16) + ($contents[$i+2] +< 8) + ($contents[$i+3] +< 0);
+	$i += 4;
+}
+
+sub rxyo() { rxy ; offset ; }
+
+#loop (my $i = 0; $i < $contents.elems ; 0) {
+while ($i < $contents.elems) {
 	my $ins = $contents[$i];
-	print $ins, "\t" ;
+	$i++;
+	#print $ins, "\t" ;
 	given $ins {
-		#when 0 { say "HALT"; 0; }
-		#when 1 { say "NOP";}
-		#when 2 {say "TRAP"; }
-		when 7 {say "STI"; $i += 6; }
-		when 9 { say "LDA"; $i += 6; }
-		when 10 { say "LDR"; $i += 2; }
-		default { say "unknown";  $i += 6; }
+		when 0 	{ say "HALT"; }
+		when 1 	{ say "NOP";  }
+		when 2 	{ say "TRAP"; }
+		when 3 	{ rxy ; say "ADD $rx, $ry";  }
+		when 4 	{ rxy ; say "SUB $rx, $ry";  }
+		when 5	{ rxy ; say "MUL $rx, $ry";  }
+		when 6	{ rxy ; say "DIV $rx, $ry";  }
+		when 7 	{ rxyo ; say "STI $rx, $offset ($ry)";  }
+		when 8 	{ rxyo ; say "LDI $offset ($rx), $ry";  }
+		when 9 	{ rxyo ; say "LDA $offset ($rx), $ry";  }
+		when 10 { rxy ; say "LDR $rx, $ry"; }
+		when 11 { offset ; say "BZE $offset";  }
+		when 12 { offset ; say "BNZ $offset"; }
+		when 13 { offset ; say "BRA $offset";}
+		when 14 { rxy; say "BAL $rx, $ry";  }
+		default { say "DB?";  }
 	}
+	#last if $i >= $contents.elems;
 }
