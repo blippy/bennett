@@ -147,6 +147,9 @@ say "Size: ", len;
 my $x=0;
 for @mem { printf "%02x ", $_; $x++ ; if $x == 8 { print " "} ; if $x == 16 { say ""; $x = 0 ; } }
 
-my $fout = open "out.vam", :w, :b; # , :enc("ascii");
-for @mem { $fout.printf("%c", $_); }
+Buf.new(@mem[0]);
+my $fout = open "out.vam", :w, :bin; # , :enc("ascii");
+#$fout.write(@mem);
+for @mem { $fout.write(Buf.new($_)); }
 $fout.close;
+#spurt "out.vam", @mem, :w, :bin;
