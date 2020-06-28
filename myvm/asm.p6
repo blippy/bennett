@@ -117,3 +117,4 @@ for @holes -> [$label, $pos, $rel] {
 
 my $fout = open "out.vam", :w, :bin;
 for @mem { $fout.write(Buf.new($_)); }
+$fout.close;
