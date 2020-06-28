@@ -99,7 +99,7 @@ grammar Asm {
 }
 
 
-$str = slurp @args[0];
+my $str = slurp @args[0];
 my $res =  Asm.parse($str);
 
 # fill in the label holes
