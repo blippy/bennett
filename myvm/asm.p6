@@ -2,8 +2,6 @@
 my @args = @*ARGS;
 
 my %labels;
-#my @hole-label;
-#my @hole-pc;
 my @holes;
 my $pc = 0; # program counter
 my byte @mem;
@@ -37,9 +35,9 @@ sub pave-nrxy($opcode) {
 	@mem.append($rxy);
 }
 
-sub pave-off() {
+sub pave-off(Bool $relative = False) {
 	if $offset ~~ Str {
-		@holes.push( [$offset, len] );
+		@holes.push( [$offset, len, $relative] );
 		@mem.append( 0xD, 0xE, 0xA, 0xD);
 	} else {
 		@mem.append(big-end $offset);
@@ -47,14 +45,15 @@ sub pave-off() {
 
 }
 
-sub pave-noff($opcode) {
-	pave $opcode;
-	pave-off;
-}
 
 sub pave-roff($opcode) {
 	pave-nrxy $opcode;
 	pave-off;
+}
+
+sub pave-noff($opcode) {
+	pave $opcode;
+	pave-off True;
 }
 
 grammar Asm {
@@ -96,61 +95,25 @@ grammar Asm {
 	rule bra	{ 'BRA' <offset> { pave-noff 13; }}
 	rule bal	{ 'BAL' <RxRy> { pave-nrxy 14; }}
 
-	rule db		{ 'DB' <digits> }
+	rule db		{ 'DB' <digits> { my $n = "$<digits>".Int; @mem.append( $n ); }}
 }
 
-my $str = q:to/END/;
 
-
-\HALT  
-\NOP
-\TRAP
-\STI R1,0(R1)
-L1:
-\	ADD R1, R13
-\ foo bar baz
-LDA L2(R1),R2
-L2:
-\LDA 27,R2
-\LDA L28 (R3),R2
-\LDA L29 (R3),R2
-\LDA L0,R1
-
-END
-
-$str = slurp "../../examples/fact.vas";
 $str = slurp @args[0];
-#$str = slurp "test.vas";
-#say $str;
 my $res =  Asm.parse($str);
-#say $res;
-
-#say "Labels:", %labels;
-#say "Holes: ", @hole-label, @hole-pc;
-#say "Holes: ", @holes;
 
 # fill in the label holes
-for @holes -> [$label, $pos] {
+for @holes -> [$label, $pos, $rel] {
 	my $where = %labels{$label};
-	my @warr = big-end($where);
-	for 0..3 {
-		@mem[$pos+$_] = @warr[$_];
-	}
-
-	#say "TODO filling $label, $pos, $where";
+	my $val   = $where;
+	if $rel { $val = $where - $pos +1; }
+	my @warr = big-end($val);
+	for 0..3 { @mem[$pos+$_] = @warr[$_]; }
 }
 
-#for @mem { printf "%c", $_; }
-#spurt "out.vam", @mem, :enc<ascii>
-say "Size: ", len;
 
-my $x=0;
-for @mem { printf "%02x ", $_; $x++ ; if $x == 8 { print " "} ; if $x == 16 { say ""; $x = 0 ; } }
+#my $x=0;
+#for @mem { printf "%02x ", $_; $x++ ; if $x == 8 { print " "} ; if $x == 16 { say ""; $x = 0 ; } }
 
-Buf.new(@mem[0]);
-my $fout = open "out.vam", :w, :bin; # , :enc("ascii");
-#$fout.write(@mem);
+my $fout = open "out.vam", :w, :bin;
 for @mem { $fout.write(Buf.new($_)); }
-#for @mem { $fout.write-uint8($_); }
-$fout.close;
-#spurt "out.vam", @mem, :w, :bin;
