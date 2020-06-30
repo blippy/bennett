@@ -1,0 +1,17 @@
+\ added by mcarter 2020-06-30
+\ test of syscalls
+\ this just echos stdin to stdout
+
+loop:
+	SYS 0 \ getchar
+	TRAP
+	BZE fin
+	LDA 88, R15
+	TRAP
+	BRA loop
+fin:
+\ print a newline and exit	
+	LDA 10, R15
+	TRAP
+	HALT
+

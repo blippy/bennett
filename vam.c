@@ -57,7 +57,8 @@
 #define  I_BNZ   12 
 #define  I_BRA   13
 #define  I_BAL   14 			 /* BAL Rx,Ry */
-#define  I_MAX   15
+#define  T_SYS   15	// make a "system" call.
+#define  I_MAX   16
 
 /* System things */
 
@@ -68,7 +69,7 @@
 
 /* Routine to increment the Z flag */
 
-#define  DO_Z(x)  ((x) == 0 ? (z_flag = TRUE) : (z_flag = FALSE))
+//#define  DO_Z(x)  ((x) == 0 ? (z_flag = TRUE) : (z_flag = FALSE))
 
 /* Global variables */
 
@@ -76,10 +77,17 @@ unsigned int   r[REGMAX] ;		 /* Registers */
 unsigned char  mem[MEMMAX] ;		 /* Memory */
 unsigned int   pc ;			 /* Program counter */
 int            z_flag ;			 /* The Zero flag */
+int		n_flag;			// negative flag
 int            vam_clock ;		 /* How many cycles */
 
 char          *image_file ;		 /* Image to load */
 int            trace_flag ;		 /* Do we trace each instruction? */
+
+void DO_NZ(signed int v)
+{
+	z_flag = (v==0);
+	n_flag = (v<0);
+}
 
 /* Routines */
 
@@ -103,6 +111,29 @@ void  print_op( unsigned int   o_pc,	 /* Opcode name */
 	        int            rx,
 	        int            ry,
 	        int            offset ) ;
+
+/* system calls */
+
+void sys_getchar()
+{
+	//printf("sys_getchar() called\n");
+	r[15] = getchar();
+}
+
+typedef void (*codeptr)();
+
+static codeptr syscalls[] = {
+	sys_getchar // 0
+};
+
+
+void init_syscalls()
+{
+	// actually we don't need to do anything
+	//codeptr fn = syscalls;
+	//while(fn) {
+
+}
 
 
 void  main( int   argc,
@@ -192,6 +223,8 @@ void  init_system()
 	for( i = 0 ; (ch = fgetc( fh )) != EOF ; i++ )
 		mem[i] = (char)ch ;
 
+	init_syscalls();
+
 	/* Eventually we'll set up interrupt handling here */
 
 }	/* init_system() */
@@ -233,7 +266,7 @@ void  vam()
 		case I_TRAP:
 
 			printf( "%c", r[15] ) ;	 /* Print out r[15] in ASCII */
-			DO_Z( r[15] ) ;
+			DO_NZ( r[15] ) ;
 			vam_clock++ ;
 			break ;
 
@@ -241,7 +274,8 @@ void  vam()
 
 			rx = mem[pc] >> 4 ;	 /* Registers */
 			ry = mem[i_pc()] &  0x0f ;
-			DO_Z( r[ry] = r[rx] + r[ry] ) ;
+			r[ry] = r[rx] + r[ry];
+			DO_NZ(r[ry]);
 			vam_clock++ ;
 			break ;
 
@@ -249,7 +283,8 @@ void  vam()
 
 			rx = mem[pc] >> 4 ;	 /* Registers */
 			ry = mem[i_pc()] &  0x0f ;
-			DO_Z( r[ry] = r[rx] - r[ry] ) ;
+			r[ry] = r[rx] - r[ry];
+			DO_NZ(r[ry]);
 			vam_clock++ ;
 			break ;
 
@@ -257,7 +292,8 @@ void  vam()
 
 			rx = mem[pc] >> 4 ;	 /* Registers */
 			ry = mem[i_pc()] &  0x0f ;
-			DO_Z( r[ry] = r[rx] * r[ry] ) ;
+			r[ry] = r[rx] * r[ry];
+			DO_NZ(r[ry]);
 			vam_clock += 5 ;
 			break ;
 
@@ -269,11 +305,14 @@ void  vam()
 			if( r[ry] == 0 )         /* Check for divide by zero */
 			{
 				printf( "vam: Divide by zero trap\n" ) ;
-				DO_Z( r[ry] = 0 ) ;
+				r[ry] = 0;
+				DO_NZ(r[ry]);
 				trace( o_pc, op, rx, ry, offset ) ;
 			}
-			else
-				DO_Z( r[ry] = r[rx] / r[ry] ) ;
+			else {
+				r[ry] = r[rx] / r[ry] ;
+				DO_NZ(r[ry]);
+			}
 
 			vam_clock += 10 ;
 			break ;
@@ -303,7 +342,7 @@ void  vam()
 			mem[offset + r[ry] + 1] = r[rx] >> 16 & 0xff ;
 			mem[offset + r[ry] + 2] = r[rx] >>  8 & 0xff ;
 			mem[offset + r[ry] + 3] = r[rx]       & 0xff ;
-			DO_Z( r[rx] ) ;
+			DO_NZ( r[rx] ) ;
 			vam_clock += 2 ;
 			break ;
 
@@ -324,7 +363,8 @@ void  vam()
 
 			if( op == I_LDA )
 			{
-				DO_Z( r[ry] = offset + r[rx] ) ;
+				r[ry] = offset + r[rx];
+				DO_NZ(r[ry]);
 				vam_clock += 2 ;
 				break ;
 			}
@@ -342,7 +382,8 @@ void  vam()
 			t = (t << 8) + mem[offset + r[rx] + 1] ;
 			t = (t << 8) + mem[offset + r[rx] + 2] ;
 			t = (t << 8) + mem[offset + r[rx] + 3] ;
-			DO_Z( r[ry] = t ) ;
+			r[ry] = t ;
+			DO_NZ(r[ry]);
 			vam_clock += 2 ;
 			break ;
 
@@ -351,7 +392,8 @@ void  vam()
 			rx = mem[pc] >> 4 ;		   /* Registers */
 			ry = mem[i_pc()] &  0x0f ;
 			vam_clock++ ;
-			DO_Z( r[ry] = r[rx] ) ;
+			r[ry] = r[rx];
+			DO_NZ(r[ry]);
 			break ;
 
 		case I_BZE:
@@ -409,6 +451,17 @@ void  vam()
 			vam_clock += 2 ;
 			break ;
 
+		case T_SYS:
+			//printf("T_SYS encountered\n");
+			offset = mem[i_pc()] ;		   /* Offset */
+			offset = (offset << 8) | mem[i_pc()] ;
+			offset = (offset << 8) | mem[i_pc()] ;
+			offset = (offset << 8) | mem[i_pc()] ;
+			//printf("offset is %d\n", offset);
+			codeptr fn = syscalls[offset];
+			fn();
+			vam_clock += 1;
+			break;
 		default:
 
 			printf( "vam: Instruction trap %02x\n", op ) ;

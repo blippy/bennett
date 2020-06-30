@@ -77,7 +77,7 @@ grammar Asm {
 
 	rule loi 	{ (<halt> | <nop> | <trap> | <add> | <sub> | <mul> 
 	| <div> | <sti> | <ldi> | <lda> 
-	| <ldr> | <bze> | <bnz> | <bra> | <bal>
+	| <ldr> | <bze> | <bnz> | <bra> | <bal> | <sys>
 	| <db>  | <label>) { reset; } }
 	rule halt	{ 'HALT' { pave 0;} }
 	rule nop	{ 'NOP'  { pave 1;} }
@@ -94,6 +94,7 @@ grammar Asm {
 	rule bnz	{ 'BNZ' <offset> { pave-noff 12; }}
 	rule bra	{ 'BRA' <offset> { pave-noff 13; }}
 	rule bal	{ 'BAL' <RxRy> { pave-nrxy 14; }}
+	rule sys	{ 'SYS' <offset> {pave-noff 15; }}
 
 	rule db		{ 'DB' <digits> { my $n = "$<digits>".Int; @mem.append( $n ); }}
 }
