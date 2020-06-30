@@ -58,7 +58,9 @@
 #define  I_BRA   13
 #define  I_BAL   14 			 /* BAL Rx,Ry */
 #define  T_SYS   15	// make a "system" call.
-#define  I_MAX   16
+#define  T_BLTZ  16
+#define  T_BGTZ  17
+#define  I_MAX   18
 
 /* System things */
 
@@ -399,6 +401,8 @@ void  vam()
 		case I_BZE:
 		case I_BNZ:
 		case I_BRA:
+		case T_BLTZ:
+		case T_BGTZ:
 
 			/* Do the offset calculation by oring in, not addition,
 			   so negative offsets are correctly done */
@@ -412,6 +416,8 @@ void  vam()
 
 			if((( op == I_BZE ) && z_flag )  ||
 			   (( op == I_BNZ ) && !z_flag ) ||
+			   (( op == T_BLTZ) && n_flag)    ||
+			   (( op == T_BGTZ) && !n_flag && !z_flag) ||
 			    ( op == I_BRA ))
 			{
 

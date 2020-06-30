@@ -4,14 +4,11 @@
 
 loop:
 	SYS 0 \ getchar
-	TRAP
-	BZE fin
-	LDA 88, R15
+	SUB R0,R15 \ get the flags
+	BGTZ fin \ pos => EOF, so exit
+	SUB R0, R15 \ convert back to positive
 	TRAP
 	BRA loop
 fin:
-\ print a newline and exit	
-	LDA 10, R15
-	TRAP
 	HALT
 

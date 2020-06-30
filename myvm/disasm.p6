@@ -62,6 +62,8 @@ while ($i < $contents.elems) {
 		when 13 { offset ; say "BRA $offset";}
 		when 14 { rxy; say "BAL $rx, $ry";  }
 		when 15 { offset ; say "SYS $offset";}
+		when 16 { offset ; say "BLTZ $offset";}
+		when 17 { offset ; say "BGTZ $offset";}
 		default { say "???";  }
 	}
 	#last if $i >= $contents.elems;
