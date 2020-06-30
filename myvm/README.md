@@ -9,7 +9,7 @@ My own attempt at writing the VM in C++. It should be shorter and easier to unde
 ## Opcodes
 
 These are described on page 232 of Bennett's bool.
-
+```
 00 HALT
 01 NOP
 02 TRAP
@@ -28,10 +28,20 @@ These are described on page 232 of Bennett's bool.
 15 SYS  offset \ make a system call
 16 BLTZ offset \ branch on less than or equal to 0
 17 BGTZ offset \ branch on greater than or equal to 0 
+```
 
 Instructions 15 onwards were added by M Carter. They are understood by asm.p6, disasm.p6 and vam. vc does not generate them, nor does asm or disasm understand them
 
 SYS is for making "system" calls
+
+## SYS calls
+
+There's currently only 1 system call available, but the mecahnism is fairly general, allowing you to extend the VM as the need arises.
+
+### SYS 0 - getchar
+
+Calls getchar(), placing the result in R15. A negative number implies EOF.
+
 
 ## Registers and calling conventions
 
