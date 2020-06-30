@@ -25,3 +25,16 @@ These are described on page 232 of Bennett's bool.
 12 BNZ
 13 BRA
 14 BAL
+
+## Registers and calling conventions
+
+The VAM has 16 registers, labelled R0..R15
+
+The following special purpose or conventions apply:
+* R0 - always 0
+* R1 - stack pointer
+* R2 - holds address of called routine
+* R3 - holds return address of the entering routine
+* R4 - return result
+
+Routine arguments are passed on the stack, not in registers.
