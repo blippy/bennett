@@ -13,18 +13,25 @@ These are described on page 232 of Bennett's bool.
 00 HALT
 01 NOP
 02 TRAP
-03 ADD
-04 SUB
-05 MUL
+03 ADD Rx, Ry \ Ry := Rx + Ry
+04 SUB Rx, Ry \ Ry := Rx - Ry
+05 MUL Rx, Ry 
 06 DIV
-07 STI
-08 LDI
-09 LDA
-10 LDR
-11 BZE
-12 BNZ
-13 BRA
-14 BAL
+07 STI Rx,offset(Ry) \ *(Ry+offset) := Rx
+08 LDI offset(Rx), Ry \ Ry  := *(Rx+offset)
+09 LDA offset(Rx), Ry \ Ry := Rx + offset
+10 LDR Rx, Ry  \ Ry := Rx
+11 BZE offset
+12 BNZ offset
+13 BRA offset
+14 BAL Rx, Ry
+15 SYS  offset \ make a system call
+16 BLTZ offset \ branch on less than or equal to 0
+17 BGTZ offset \ branch on greater than or equal to 0 
+
+Instructions 15 onwards were added by M Carter. They are understood by asm.p6, disasm.p6 and vam. vc does not generate them, nor does asm or disasm understand them
+
+SYS is for making "system" calls
 
 ## Registers and calling conventions
 

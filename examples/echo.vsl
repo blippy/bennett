@@ -3,10 +3,9 @@
 \ this just echos stdin to stdout
 
 loop:
-	SYS 0 \ getchar
-	SUB R0,R15 \ get the flags
-	BGTZ fin \ pos => EOF, so exit
-	SUB R0, R15 \ convert back to positive
+	SYS 0 		\ getchar into R15
+	LDR R15, R15 	\ check for EOF
+	BLTZ fin 	\ if EOF then finished
 	TRAP
 	BRA loop
 fin:
