@@ -47,6 +47,16 @@ There's currently only 1 system call available, but the mecahnism is fairly gene
 Calls getchar(), placing the result in R15. A negative number implies EOF.
 
 
+## Data directives
+
+The following directives do not have opcodes, but they do embed data into the object file
+
+```
+ASCIIZ str	\ embed a null-terminated string
+BYTES n 	\ embed N bytes, each with value 0
+DB n 		\ embed a byte with value N
+```
+
 ## Registers and calling conventions
 
 The VAM has 16 registers, labelled R0..R15
