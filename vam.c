@@ -1,39 +1,39 @@
 /******************************************************************************
-*******************************************************************************
+ *******************************************************************************
 
 
-                         VV    VV    AAAA    MM    MM
-                         VV    VV   AAAAAA   MMM  MMM
-                         VV    VV  AA    AA  MMMMMMMM
-                         VV    VV  AAAAAAAA  MM MM MM
-                         VV    VV  AA    AA  MM    MM
-                          VV  VV   AA    AA  MM    MM
-                           VVVV    AA    AA  MM    MM
-                            VV     AA    AA  MM    MM
+ VV    VV    AAAA    MM    MM
+ VV    VV   AAAAAA   MMM  MMM
+ VV    VV  AA    AA  MMMMMMMM
+ VV    VV  AAAAAAAA  MM MM MM
+ VV    VV  AA    AA  MM    MM
+ VV  VV   AA    AA  MM    MM
+ VVVV    AA    AA  MM    MM
+ VV     AA    AA  MM    MM
 
 
-*******************************************************************************
-*******************************************************************************
+ *******************************************************************************
+ *******************************************************************************
 
-			VAM - The VSL Abstract Machine
-			==============================
+ VAM - The VSL Abstract Machine
+ ==============================
 
-   A simulator for the VSL Abstract Machine. This is just a glorified switch
-   with signal handling.
+ A simulator for the VSL Abstract Machine. This is just a glorified switch
+ with signal handling.
 
-   Modifications:
-   ==============
+Modifications:
+==============
 
-    5 Dec 88  JPB: First Version
-    9 May 91  JPB: fprintf had stderr inserted as first argument in four
-                   places. clock changed to vam_clock to avoid name clashes
-                   with certain compilers, where clock is a reserved
-                   identifier. (J Johnson, M Haberler and R Tearle)
-   28 Apr 92  JPB: bitwise OR used to calculate offsets, rather than addition.
-   15 Sep 92  JPB: | replaced || as bitwise operator in previous bug.
+5 Dec 88  JPB: First Version
+9 May 91  JPB: fprintf had stderr inserted as first argument in four
+places. clock changed to vam_clock to avoid name clashes
+with certain compilers, where clock is a reserved
+identifier. (J Johnson, M Haberler and R Tearle)
+28 Apr 92  JPB: bitwise OR used to calculate offsets, rather than addition.
+15 Sep 92  JPB: | replaced || as bitwise operator in previous bug.
 
-*******************************************************************************
-******************************************************************************/
+ *******************************************************************************
+ ******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,10 +57,12 @@
 #define  I_BNZ   12 
 #define  I_BRA   13
 #define  I_BAL   14 			 /* BAL Rx,Ry */
-#define  T_SYS   15	// make a "system" call.
-#define  T_BLTZ  16
-#define  T_BGTZ  17
-#define  I_MAX   18
+#define  I_SYS   15	// make a "system" call.
+#define  I_BLTZ  16
+#define  I_BGTZ  17
+#define  I_DAT   18
+#define  I_LDIB  19
+#define  I_MAX   20
 
 /* System things */
 
@@ -94,7 +96,7 @@ void DO_NZ(signed int v)
 /* Routines */
 
 void  read_args( int   argc,		 /* Handle args */
-		 char *argv[] ) ;
+		char *argv[] ) ;
 
 void  init_system() ;			 /* Set up the world */
 
@@ -103,16 +105,16 @@ void  vam() ;				 /* Simulator */
 int   i_pc() ;				 /* Safely increment the PC */
 
 void  trace( unsigned int   o_pc,	 /* Dump out state */
-	     unsigned char  op,
-	     int            rx,
-	     int            ry,
-	     int            offset ) ;
+		unsigned char  op,
+		int            rx,
+		int            ry,
+		int            offset ) ;
 
 void  print_op( unsigned int   o_pc,	 /* Opcode name */
-	        unsigned char  op,
-	        int            rx,
-	        int            ry,
-	        int            offset ) ;
+		unsigned char  op,
+		int            rx,
+		int            ry,
+		int            offset ) ;
 
 /* system calls */
 
@@ -139,10 +141,10 @@ void init_syscalls()
 
 
 void  main( int   argc,
-            char *argv[] )
+		char *argv[] )
 
-/* vam takes a single argument, the object file, which is loaded at address
-   zero. There is an optional flag, -t, which means trace at each step. */
+	/* vam takes a single argument, the object file, which is loaded at address
+	   zero. There is an optional flag, -t, which means trace at each step. */
 
 {
 	read_args( argc, argv ) ;	 /* Get the arguments */
@@ -153,9 +155,9 @@ void  main( int   argc,
 
 
 void  read_args( int   argc,
-		 char *argv[] )
+		char *argv[] )
 
-/* Read an optional -t flag and a filename */
+	/* Read an optional -t flag and a filename */
 
 {
 	int  maxargs = 1 ;		 /* Maxargs expected */
@@ -194,8 +196,8 @@ void  read_args( int   argc,
 
 void  init_system()
 
-/* Set up the system, ready to run. This means initialising all the registers
-   etc. */
+	/* Set up the system, ready to run. This means initialising all the registers
+	   etc. */
 
 {
 	int   i ;			 /* For counting */
@@ -236,7 +238,7 @@ void  init_system()
 
 void  vam()
 
-/* The actual simulator. This is just a switchon in a loop */
+	/* The actual simulator. This is just a switchon in a loop */
 
 {
 	unsigned int   o_pc ;		 /* Old pc */
@@ -251,226 +253,229 @@ void  vam()
 
 		switch( op = mem[i_pc()] )
 		{
-		case I_HALT:
+			case I_HALT:
 
-			/* Satisfactory termination */
+				/* Satisfactory termination */
 
-			vam_clock++ ;
-			trace( o_pc, op, rx, ry, offset ) ;
-			exit( 0 ) ;
-
-		case I_NOP:
-
-			vam_clock++ ;
-			trace( o_pc, op, rx, ry, offset ) ;
-			break ;
-
-		case I_TRAP:
-
-			printf( "%c", r[15] ) ;	 /* Print out r[15] in ASCII */
-			DO_NZ( r[15] ) ;
-			vam_clock++ ;
-			break ;
-
-		case I_ADD:
-
-			rx = mem[pc] >> 4 ;	 /* Registers */
-			ry = mem[i_pc()] &  0x0f ;
-			r[ry] = r[rx] + r[ry];
-			DO_NZ(r[ry]);
-			vam_clock++ ;
-			break ;
-
-		case I_SUB:
-
-			rx = mem[pc] >> 4 ;	 /* Registers */
-			ry = mem[i_pc()] &  0x0f ;
-			r[ry] = r[rx] - r[ry];
-			DO_NZ(r[ry]);
-			vam_clock++ ;
-			break ;
-
-		case I_MUL:
-
-			rx = mem[pc] >> 4 ;	 /* Registers */
-			ry = mem[i_pc()] &  0x0f ;
-			r[ry] = r[rx] * r[ry];
-			DO_NZ(r[ry]);
-			vam_clock += 5 ;
-			break ;
-
-		case I_DIV:
-
-			rx = mem[pc] >> 4 ;	 /* Registers */
-			ry = mem[i_pc()] &  0x0f ;
-
-			if( r[ry] == 0 )         /* Check for divide by zero */
-			{
-				printf( "vam: Divide by zero trap\n" ) ;
-				r[ry] = 0;
-				DO_NZ(r[ry]);
+				vam_clock++ ;
 				trace( o_pc, op, rx, ry, offset ) ;
-			}
-			else {
-				r[ry] = r[rx] / r[ry] ;
-				DO_NZ(r[ry]);
-			}
+				exit( 0 ) ;
 
-			vam_clock += 10 ;
-			break ;
+			case I_NOP:
 
-		case I_STI:
-
-			/* Do the offset calculation by oring in, not addition,
-			   so negative offsets are correctly done */
-
-			rx = mem[pc] >> 4 ;		   /* Registers */
-			ry = mem[i_pc()] &  0x0f ;
-			offset = mem[i_pc()] ;		   /* Offset */
-			offset = (offset << 8) | mem[i_pc()] ;
-			offset = (offset << 8) | mem[i_pc()] ;
-			offset = (offset << 8) | mem[i_pc()] ;
-
-			/* Check we are still in memory first */
-
-			if(( offset + r[ry] + 4 ) > MEMMAX )
-			{
-				fprintf( stderr, "vam: bus error\n" ) ;
+				vam_clock++ ;
 				trace( o_pc, op, rx, ry, offset ) ;
-				exit( 10 ) ;
-			}
-
-			mem[offset + r[ry]]     = r[rx] >> 24        ;
-			mem[offset + r[ry] + 1] = r[rx] >> 16 & 0xff ;
-			mem[offset + r[ry] + 2] = r[rx] >>  8 & 0xff ;
-			mem[offset + r[ry] + 3] = r[rx]       & 0xff ;
-			DO_NZ( r[rx] ) ;
-			vam_clock += 2 ;
-			break ;
-
-		case I_LDI:
-		case I_LDA:
-
-			/* Do the offset calculation by oring in, not addition,
-			   so negative offsets are correctly done */
-
-			rx = mem[pc] >> 4 ;		   /* Registers */
-			ry = mem[i_pc()] &  0x0f ;
-			offset = mem[i_pc()] ;		   /* Offset */
-			offset = (offset << 8) | mem[i_pc()] ;
-			offset = (offset << 8) | mem[i_pc()] ;
-			offset = (offset << 8) | mem[i_pc()] ;
-
-			/* For LDA just do the operation */
-
-			if( op == I_LDA )
-			{
-				r[ry] = offset + r[rx];
-				DO_NZ(r[ry]);
-				vam_clock += 2 ;
 				break ;
-			}
 
-			/* For LDI Check we are still in memory first */
+			case I_TRAP:
 
-			if(( offset + r[rx] + 4 ) > MEMMAX )
-			{
-				fprintf( stderr, "vam: bus error\n" ) ;
-				trace( o_pc, op, rx, ry, offset ) ;
-				exit( 10 ) ;
-			}
+				printf( "%c", r[15] ) ;	 /* Print out r[15] in ASCII */
+				DO_NZ( r[15] ) ;
+				vam_clock++ ;
+				break ;
 
-			t =            mem[offset + r[rx]    ] ;
-			t = (t << 8) + mem[offset + r[rx] + 1] ;
-			t = (t << 8) + mem[offset + r[rx] + 2] ;
-			t = (t << 8) + mem[offset + r[rx] + 3] ;
-			r[ry] = t ;
-			DO_NZ(r[ry]);
-			vam_clock += 2 ;
-			break ;
+			case I_ADD:
 
-		case I_LDR:
+				rx = mem[pc] >> 4 ;	 /* Registers */
+				ry = mem[i_pc()] &  0x0f ;
+				r[ry] = r[rx] + r[ry];
+				DO_NZ(r[ry]);
+				vam_clock++ ;
+				break ;
 
-			rx = mem[pc] >> 4 ;		   /* Registers */
-			ry = mem[i_pc()] &  0x0f ;
-			vam_clock++ ;
-			r[ry] = r[rx];
-			DO_NZ(r[ry]);
-			break ;
+			case I_SUB:
 
-		case I_BZE:
-		case I_BNZ:
-		case I_BRA:
-		case T_BLTZ:
-		case T_BGTZ:
+				rx = mem[pc] >> 4 ;	 /* Registers */
+				ry = mem[i_pc()] &  0x0f ;
+				r[ry] = r[rx] - r[ry];
+				DO_NZ(r[ry]);
+				vam_clock++ ;
+				break ;
 
-			/* Do the offset calculation by oring in, not addition,
-			   so negative offsets are correctly done */
+			case I_MUL:
 
-			offset = mem[i_pc()] ;		   /* Offset */
-			offset = (offset << 8) | mem[i_pc()] ;
-			offset = (offset << 8) | mem[i_pc()] ;
-			offset = (offset << 8) | mem[i_pc()] ;
+				rx = mem[pc] >> 4 ;	 /* Registers */
+				ry = mem[i_pc()] &  0x0f ;
+				r[ry] = r[rx] * r[ry];
+				DO_NZ(r[ry]);
+				vam_clock += 5 ;
+				break ;
 
-			/* Do we do the branch? */
+			case I_DIV:
 
-			if((( op == I_BZE ) && z_flag )  ||
-			   (( op == I_BNZ ) && !z_flag ) ||
-			   (( op == T_BLTZ) && n_flag)    ||
-			   (( op == T_BGTZ) && !n_flag && !z_flag) ||
-			    ( op == I_BRA ))
-			{
+				rx = mem[pc] >> 4 ;	 /* Registers */
+				ry = mem[i_pc()] &  0x0f ;
+
+				if( r[ry] == 0 )         /* Check for divide by zero */
+				{
+					printf( "vam: Divide by zero trap\n" ) ;
+					r[ry] = 0;
+					DO_NZ(r[ry]);
+					trace( o_pc, op, rx, ry, offset ) ;
+				}
+				else {
+					r[ry] = r[rx] / r[ry] ;
+					DO_NZ(r[ry]);
+				}
+
+				vam_clock += 10 ;
+				break ;
+
+			case I_STI:
+
+				/* Do the offset calculation by oring in, not addition,
+				   so negative offsets are correctly done */
+
+				rx = mem[pc] >> 4 ;		   /* Registers */
+				ry = mem[i_pc()] &  0x0f ;
+				offset = mem[i_pc()] ;		   /* Offset */
+				offset = (offset << 8) | mem[i_pc()] ;
+				offset = (offset << 8) | mem[i_pc()] ;
+				offset = (offset << 8) | mem[i_pc()] ;
 
 				/* Check we are still in memory first */
 
-				if(( offset + pc - 3 ) >= MEMMAX )
+				if(( offset + r[ry] + 4 ) > MEMMAX )
 				{
 					fprintf( stderr, "vam: bus error\n" ) ;
 					trace( o_pc, op, rx, ry, offset ) ;
 					exit( 10 ) ;
 				}
 
-				vam_clock++ ;             /* Extra tick */
-				pc += offset - 5 ;
-			}
+				mem[offset + r[ry]]     = r[rx] >> 24        ;
+				mem[offset + r[ry] + 1] = r[rx] >> 16 & 0xff ;
+				mem[offset + r[ry] + 2] = r[rx] >>  8 & 0xff ;
+				mem[offset + r[ry] + 3] = r[rx]       & 0xff ;
+				DO_NZ( r[rx] ) ;
+				vam_clock += 2 ;
+				break ;
 
-			vam_clock++ ;
-			break ;
+			case I_LDI:
+			case I_LDA:
+			case I_LDIB:
 
-		case I_BAL:
+				/* Do the offset calculation by oring in, not addition,
+				   so negative offsets are correctly done */
 
-			rx = mem[pc] >> 4 ;		   /* Registers */
-			ry = mem[i_pc()] &  0x0f ;
+				rx = mem[pc] >> 4 ;		   /* Registers */
+				ry = mem[i_pc()] &  0x0f ;
+				offset = mem[i_pc()] ;		   /* Offset */
+				offset = (offset << 8) | mem[i_pc()] ;
+				offset = (offset << 8) | mem[i_pc()] ;
+				offset = (offset << 8) | mem[i_pc()] ;
 
-			/* Check we are still in memory first */
+				/* For LDA just do the operation */
 
-			if( r[rx] >= MEMMAX )
-			{
-				fprintf( stderr, "vam: bus error\n" ) ;
-				trace( o_pc, op, rx, ry, offset ) ;
-				exit( 10 ) ;
-			}
+				if( op == I_LDA )
+				{
+					r[ry] = offset + r[rx];
+					DO_NZ(r[ry]);
+					vam_clock += 2 ;
+					break ;
+				}
 
-			t     = pc ;
-			pc    = r[rx] ;
-			r[ry] = t ;
-			vam_clock += 2 ;
-			break ;
+				/* For LDI Check we are still in memory first */
 
-		case T_SYS:
-			//printf("T_SYS encountered\n");
-			offset = mem[i_pc()] ;		   /* Offset */
-			offset = (offset << 8) | mem[i_pc()] ;
-			offset = (offset << 8) | mem[i_pc()] ;
-			offset = (offset << 8) | mem[i_pc()] ;
-			//printf("offset is %d\n", offset);
-			codeptr fn = syscalls[offset];
-			fn();
-			vam_clock += 1;
-			break;
-		default:
+				if(( offset + r[rx] + 4 ) > MEMMAX )
+				{
+					fprintf( stderr, "vam: bus error\n" ) ;
+					trace( o_pc, op, rx, ry, offset ) ;
+					exit( 10 ) ;
+				}
 
-			printf( "vam: Instruction trap %02x\n", op ) ;
+				t =            mem[offset + r[rx]    ] ;
+				if(op != I_LDIB) {
+					t = (t << 8) + mem[offset + r[rx] + 1] ;
+					t = (t << 8) + mem[offset + r[rx] + 2] ;
+					t = (t << 8) + mem[offset + r[rx] + 3] ;
+				}
+				r[ry] = t ;
+				DO_NZ(r[ry]);
+				vam_clock += 2 ;
+				break ;
+
+			case I_LDR:
+
+				rx = mem[pc] >> 4 ;		   /* Registers */
+				ry = mem[i_pc()] &  0x0f ;
+				vam_clock++ ;
+				r[ry] = r[rx];
+				DO_NZ(r[ry]);
+				break ;
+
+			case I_BZE:
+			case I_BNZ:
+			case I_BRA:
+			case I_BLTZ:
+			case I_BGTZ:
+
+				/* Do the offset calculation by oring in, not addition,
+				   so negative offsets are correctly done */
+
+				offset = mem[i_pc()] ;		   /* Offset */
+				offset = (offset << 8) | mem[i_pc()] ;
+				offset = (offset << 8) | mem[i_pc()] ;
+				offset = (offset << 8) | mem[i_pc()] ;
+
+				/* Do we do the branch? */
+
+				if((( op == I_BZE ) && z_flag )  ||
+						(( op == I_BNZ ) && !z_flag ) ||
+						(( op == I_BLTZ) && n_flag)    ||
+						(( op == I_BGTZ) && !n_flag && !z_flag) ||
+						( op == I_BRA ))
+				{
+
+					/* Check we are still in memory first */
+
+					if(( offset + pc - 3 ) >= MEMMAX )
+					{
+						fprintf( stderr, "vam: bus error\n" ) ;
+						trace( o_pc, op, rx, ry, offset ) ;
+						exit( 10 ) ;
+					}
+
+					vam_clock++ ;             /* Extra tick */
+					pc += offset - 5 ;
+				}
+
+				vam_clock++ ;
+				break ;
+
+			case I_BAL:
+
+				rx = mem[pc] >> 4 ;		   /* Registers */
+				ry = mem[i_pc()] &  0x0f ;
+
+				/* Check we are still in memory first */
+
+				if( r[rx] >= MEMMAX )
+				{
+					fprintf( stderr, "vam: bus error\n" ) ;
+					trace( o_pc, op, rx, ry, offset ) ;
+					exit( 10 ) ;
+				}
+
+				t     = pc ;
+				pc    = r[rx] ;
+				r[ry] = t ;
+				vam_clock += 2 ;
+				break ;
+
+			case I_SYS:
+				//printf("T_SYS encountered\n");
+				offset = mem[i_pc()] ;		   /* Offset */
+				offset = (offset << 8) | mem[i_pc()] ;
+				offset = (offset << 8) | mem[i_pc()] ;
+				offset = (offset << 8) | mem[i_pc()] ;
+				//printf("offset is %d\n", offset);
+				codeptr fn = syscalls[offset];
+				fn();
+				vam_clock += 1;
+				break;
+			default:
+
+				printf( "vam: Instruction trap %02x\n", op ) ;
 
 		}
 
@@ -485,8 +490,8 @@ void  vam()
 
 int  i_pc()
 
-/* Increment the program counter, so long as we stay in memory. Return the OLD
-   value */
+	/* Increment the program counter, so long as we stay in memory. Return the OLD
+	   value */
 
 {
 	if( pc++ < MEMMAX )
@@ -501,13 +506,13 @@ int  i_pc()
 
 
 void  trace( unsigned int   o_pc,
-	     unsigned char  op,
-	     int            rx,
-	     int            ry,
-	     int            offset )
- 
-/* Dump out the registers, program counter, and memory near the program counter
-*/
+		unsigned char  op,
+		int            rx,
+		int            ry,
+		int            offset )
+
+	/* Dump out the registers, program counter, and memory near the program counter
+	*/
 
 {
 	unsigned  int  b ;		 /* Base for memory dump */
@@ -563,10 +568,10 @@ void  trace( unsigned int   o_pc,
 	printf( "%02x%02x%02x%02x ", mem[b], mem[b+1], mem[b+2], mem[b+3] ) ;
 	b += 4 ;
 	printf( "%02x%02x%02x%02x\n\n",
-	        mem[b], mem[b+1], mem[b+2], mem[b+3] ) ;
+			mem[b], mem[b+1], mem[b+2], mem[b+3] ) ;
 
 	b = r[1] < 16 ? 0 : (r[1] + 32) < MEMMAX ? r[1] & 0xfffffff0 :
-						   MEMMAX - 32 ;
+		MEMMAX - 32 ;
 
 	printf( "%08x:  ", b ) ;
 	printf( "%02x%02x%02x%02x ", mem[b], mem[b+1], mem[b+2], mem[b+3] ) ;
@@ -594,7 +599,7 @@ void  trace( unsigned int   o_pc,
 	printf( "%02x%02x%02x%02x ", mem[b], mem[b+1], mem[b+2], mem[b+3] ) ;
 	b += 4 ;
 	printf( "%02x%02x%02x%02x\n\n\n",
-	        mem[b], mem[b+1], mem[b+2], mem[b+3] ) ;
+			mem[b], mem[b+1], mem[b+2], mem[b+3] ) ;
 
 	fflush( stdout ) ;
 
@@ -604,94 +609,94 @@ void  trace( unsigned int   o_pc,
 
 
 void  print_op( unsigned int   o_pc,
-	        unsigned char  op,
-	        int            rx,
-	        int            ry,
-	        int            offset )
+		unsigned char  op,
+		int            rx,
+		int            ry,
+		int            offset )
 
-/* Print out opcode */
+	/* Print out opcode */
 
 {
 	switch( op )
 	{
-	case I_HALT:
- 
-		printf( "%08x:  HALT\n\n", o_pc ) ;
-		return ;
+		case I_HALT:
 
-	case I_NOP:
-  
-		printf( "%08x:  NOP\n\n", o_pc ) ;
-		return ;
+			printf( "%08x:  HALT\n\n", o_pc ) ;
+			return ;
 
-	case I_TRAP:
- 
-		printf( "%08x:  TRAP\n\n", o_pc ) ;
-		return ;
+		case I_NOP:
 
-	case I_ADD:
-  
-		printf( "%08x:  ADD  R%d,R%d\n\n", o_pc, rx, ry) ;
-		return ;
+			printf( "%08x:  NOP\n\n", o_pc ) ;
+			return ;
 
-	case I_SUB:
-  
-		printf( "%08x:  SUB  R%d,R%d\n\n", o_pc, rx, ry) ;
-		return ;
+		case I_TRAP:
 
-	case I_MUL:
-  
-		printf( "%08x:  MUL  R%d,R%d\n\n", o_pc, rx, ry) ;
-		return ;
+			printf( "%08x:  TRAP\n\n", o_pc ) ;
+			return ;
 
-	case I_DIV:
-  
-		printf( "%08x:  DIV  R%d,R%d\n\n", o_pc, rx, ry) ;
-		return ;
+		case I_ADD:
 
-	case I_STI:
-  
-		printf( "%08x:  STI  R%d,%d(R%d)\n\n", o_pc, rx, offset, ry ) ;
-		return ;
+			printf( "%08x:  ADD  R%d,R%d\n\n", o_pc, rx, ry) ;
+			return ;
 
-	case I_LDI:
-  
-		printf( "%08x:  LDI  %d(R%d),R%d\n\n", o_pc, offset, rx, ry ) ;
-		return ;
+		case I_SUB:
 
-	case I_LDA:
-  
-		printf( "%08x:  LDA  %d(R%d),R%d\n\n", o_pc, offset, rx, ry ) ; 
-		return ;
+			printf( "%08x:  SUB  R%d,R%d\n\n", o_pc, rx, ry) ;
+			return ;
 
-	case I_LDR:
-  
-		printf( "%08x:  LDR  R%d,R%d\n\n", o_pc, rx, ry) ;
-		return ;
+		case I_MUL:
 
-	case I_BZE:
-  
-		printf( "%08x:  BZE  %d\n\n", o_pc, offset ) ;
-		return ;
+			printf( "%08x:  MUL  R%d,R%d\n\n", o_pc, rx, ry) ;
+			return ;
 
-	case I_BNZ:
-  
-		printf( "%08x:  BNZ  %d\n\n", o_pc, offset ) ;
-		return ;
+		case I_DIV:
 
-	case I_BRA:
-  
-		printf( "%08x:  BRA  %d\n\n", o_pc, offset ) ;
-		return ;
+			printf( "%08x:  DIV  R%d,R%d\n\n", o_pc, rx, ry) ;
+			return ;
 
-	case I_BAL:
-  
-		printf( "%08x:  BAL  R%d,R%d\n\n", o_pc, rx, ry) ;
-		return ;
+		case I_STI:
 
-	default:
-     
-		printf( "%08x:  ???\n\n", o_pc ) ;
+			printf( "%08x:  STI  R%d,%d(R%d)\n\n", o_pc, rx, offset, ry ) ;
+			return ;
+
+		case I_LDI:
+
+			printf( "%08x:  LDI  %d(R%d),R%d\n\n", o_pc, offset, rx, ry ) ;
+			return ;
+
+		case I_LDA:
+
+			printf( "%08x:  LDA  %d(R%d),R%d\n\n", o_pc, offset, rx, ry ) ; 
+			return ;
+
+		case I_LDR:
+
+			printf( "%08x:  LDR  R%d,R%d\n\n", o_pc, rx, ry) ;
+			return ;
+
+		case I_BZE:
+
+			printf( "%08x:  BZE  %d\n\n", o_pc, offset ) ;
+			return ;
+
+		case I_BNZ:
+
+			printf( "%08x:  BNZ  %d\n\n", o_pc, offset ) ;
+			return ;
+
+		case I_BRA:
+
+			printf( "%08x:  BRA  %d\n\n", o_pc, offset ) ;
+			return ;
+
+		case I_BAL:
+
+			printf( "%08x:  BAL  R%d,R%d\n\n", o_pc, rx, ry) ;
+			return ;
+
+		default:
+
+			printf( "%08x:  ???\n\n", o_pc ) ;
 	}
 
 }

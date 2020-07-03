@@ -31,6 +31,7 @@ Supplemental:
 16 BLTZ offset \ branch on less than or equal to 0
 17 BGTZ offset \ branch on greater than or equal to 0 
 18 DAT \ doesn't do anything. It's just a marker to signify the end of code
+19 LDIB \ as LDI, but loads a byte only
 ```
 
 Instructions 15 onwards were added by M Carter. They are understood by asm.p6, disasm.p6 and vam. vc does not generate them, nor does asm or disasm understand them

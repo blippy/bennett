@@ -75,10 +75,11 @@ grammar Asm {
 	token num	{ '-'? <digits> }
 	token digits	{ <[0..9]>+ }
 	rule RxRy	{ <Rx> ',' <Ry> }
-	token kstr { '"' <-[ " ]>* '"'  }
+	token kstr { '"' <( <-["]>* )> '"' }
+	#regex kstr { "([^"]|\\")*" }
 
 	rule loi 	{ (<halt> | <nop> | <trap> | <add> | <sub> | <mul> 
-	| <div> | <sti> | <ldi> | <lda> 
+	| <div> | <sti> | <ldib> | <ldi> | <lda> 
 	| <ldr> | <bze> | <bnz> | <bra> | <bal> | <sys> | <bltz> | <bgtz>
 	| <dat> | <bytes> | <asciiz>
 	| <db>  | <label>) { reset; } }
@@ -101,10 +102,12 @@ grammar Asm {
 	rule bltz	{ 'BLTZ' <offset> {pave-noff 16; }}
 	rule bgtz	{ 'BGTZ' <offset> {pave-noff 17; }}
 	rule dat	{ DAT { tack 18; }}
+	rule ldib	{ LDIB <offset> <_Rx_>? ',' <Ry> {pave-roff 19; }}
 
 	rule db		{ 'DB' <digits> { my $n = "$<digits>".Int; tack $n ; }}
 	rule bytes	{ BYTES <digits> { for 1 .. "$<digits>".Int { tack 0; }}}
-	rule asciiz	{ ASCIIZ kstr { say "TODO ASCIIZ $kstr"; }}
+	rule asciiz	{ ASCIIZ <kstr> {  for $<kstr>.Str.comb { tack $_.ord ;  }; tack 0; }}
+
 }
 
 

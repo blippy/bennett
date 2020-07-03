@@ -1,5 +1,24 @@
+\ 2020-07-3 added mcarter
+\ print hello world to stdout
 
+
+	LDA 	STR(R0), R4 \ R4 contains pointer to string
+loop:
+	LDIB 0(R4), R15
+
+	\ exit if we've reached the string terminator
+	LDR R15,R15
+	BZE bye	
+
+	TRAP
+	LDA	1(R4), R4
+	BRA loop
+bye:
+	LDA 10(R0),R15 \ newline char
+	TRAP
 	HALT
 	DAT
 
-STR:	ASCIIZ "Hello world"
+STR:	
+	ASCIIZ "Hello world"
+
