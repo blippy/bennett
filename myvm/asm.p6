@@ -10,6 +10,7 @@ my $ry = 0; # Ry register in an instruction
 my $offset;
 
 sub len() { @mem.elems }
+sub tack($b) { @mem.append($b); }
 
 sub reset() { # clears out undefined optional components of instructions, e.g. in LDA
 	$rx = 0;
@@ -74,10 +75,12 @@ grammar Asm {
 	token num	{ '-'? <digits> }
 	token digits	{ <[0..9]>+ }
 	rule RxRy	{ <Rx> ',' <Ry> }
+	token kstr { '"' <-[ " ]>* '"'  }
 
 	rule loi 	{ (<halt> | <nop> | <trap> | <add> | <sub> | <mul> 
 	| <div> | <sti> | <ldi> | <lda> 
 	| <ldr> | <bze> | <bnz> | <bra> | <bal> | <sys> | <bltz> | <bgtz>
+	| <dat> | <bytes> | <asciiz>
 	| <db>  | <label>) { reset; } }
 	rule halt	{ 'HALT' { pave 0;} }
 	rule nop	{ 'NOP'  { pave 1;} }
@@ -97,8 +100,11 @@ grammar Asm {
 	rule sys	{ 'SYS' <offset> {pave-noff 15; }}
 	rule bltz	{ 'BLTZ' <offset> {pave-noff 16; }}
 	rule bgtz	{ 'BGTZ' <offset> {pave-noff 17; }}
+	rule dat	{ DAT { tack 18; }}
 
-	rule db		{ 'DB' <digits> { my $n = "$<digits>".Int; @mem.append( $n ); }}
+	rule db		{ 'DB' <digits> { my $n = "$<digits>".Int; tack $n ; }}
+	rule bytes	{ BYTES <digits> { for 1 .. "$<digits>".Int { tack 0; }}}
+	rule asciiz	{ ASCIIZ kstr { say "TODO ASCIIZ $kstr"; }}
 }
 
 

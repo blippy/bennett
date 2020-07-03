@@ -1,0 +1,5 @@
+
+	HALT
+	DAT
+
+STR:	ASCIIZ "Hello world"
